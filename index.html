@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DinoWars IO — 恐龍霸主</title>
+  <meta name="description" content="一款融合IO與策略的恐龍主題網頁遊戲，選擇你的恐龍，收集資源，擊敗對手成為霸主！">
+  <!-- No external font dependencies — uses system fonts -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== SCREEN: MENU ===================== -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-bg">
+    <div class="dino-silhouettes">
+      <span class="sil s1">🦕</span>
+      <span class="sil s2">🦖</span>
+      <span class="sil s3">🦕</span>
+    </div>
+    <div class="particles" id="menu-particles"></div>
+  </div>
+  <div class="menu-content">
+    <div class="logo">
+      <h1 class="logo-title">DINO<span>WARS</span></h1>
+      <p class="logo-sub">恐龍霸主 · IO Strategy</p>
+    </div>
+    <button class="btn-main" id="btn-play">⚔️ 開始遊戲</button>
+    <button class="btn-secondary" id="btn-leaderboard">🏆 排行榜</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: DINO SELECT ===================== -->
+<div id="screen-select" class="screen">
+  <div class="select-bg"></div>
+  <div class="select-content">
+    <h2 class="select-title">選擇你的恐龍</h2>
+    <p class="select-sub">每種恐龍擁有獨特的能力與屬性</p>
+
+    <div class="dino-name-input">
+      <input type="text" id="player-name" placeholder="輸入你的名字" maxlength="12" />
+    </div>
+
+    <div class="dino-grid" id="dino-grid">
+      <!-- Dino cards populated by JS -->
+    </div>
+
+    <div class="selected-info" id="selected-info">
+      <div class="info-placeholder">← 點擊選擇一隻恐龍</div>
+    </div>
+
+    <button class="btn-main" id="btn-enter" disabled>🦖 進入戰場</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: GAME ===================== -->
+<div id="screen-game" class="screen">
+  <!-- HUD -->
+  <div class="hud" id="hud">
+    <div class="hud-top">
+      <div class="hud-player">
+        <span class="hud-dino-icon" id="hud-dino-icon">🦖</span>
+        <div class="hud-stats">
+          <div class="hud-name" id="hud-name">Player</div>
+          <div class="hp-bar-wrap">
+            <div class="hp-bar" id="hp-bar"></div>
+            <span class="hp-text" id="hp-text">100/100</span>
+          </div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="hud-kill" id="hud-kill">💀 擊殺: 0</div>
+        <div class="hud-score" id="hud-score">⭐ 分數: 0</div>
+      </div>
+      <div class="hud-resources">
+        <div class="res-item"><span>🥩</span> <span id="res-meat">0</span></div>
+        <div class="res-item"><span>💎</span> <span id="res-crystal">0</span></div>
+        <div class="res-item"><span>🌿</span> <span id="res-herb">0</span></div>
+        <div class="res-item"><span>🔥</span> <span id="res-fire">0</span></div>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="xp-bar-wrap">
+        <div class="xp-bar" id="xp-bar"></div>
+        <span class="xp-label" id="xp-label">Lv.1 — 0 / 100 XP</span>
+      </div>
+    </div>
+
+    <!-- Mini Map -->
+    <div class="minimap-wrap">
+      <canvas id="minimap" width="150" height="150"></canvas>
+      <div class="minimap-label">MAP</div>
+    </div>
+
+    <!-- Skill buttons -->
+    <div class="skill-bar" id="skill-bar">
+      <div class="skill-btn" id="skill-q" title="技能 Q">
+        <span class="skill-icon" id="skill-q-icon">⚡</span>
+        <span class="skill-key">Q</span>
+        <div class="skill-cd" id="skill-q-cd"></div>
+      </div>
+      <div class="skill-btn" id="skill-e" title="技能 E">
+        <span class="skill-icon" id="skill-e-icon">🛡️</span>
+        <span class="skill-key">E</span>
+        <div class="skill-cd" id="skill-e-cd"></div>
+      </div>
+    </div>
+
+    <!-- Upgrade Panel -->
+    <div class="upgrade-panel" id="upgrade-panel" style="display:none;">
+      <div class="upgrade-title">⬆ 升級！選擇強化屬性</div>
+      <div class="upgrade-options" id="upgrade-options"></div>
+    </div>
+  </div>
+
+  <!-- Kill feed -->
+  <div class="kill-feed" id="kill-feed"></div>
+
+  <!-- Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Death Screen -->
+  <div class="death-screen" id="death-screen" style="display:none;">
+    <div class="death-box">
+      <h2>💀 你陣亡了！</h2>
+      <p id="death-killer">被 <strong>Bot Alpha</strong> 擊殺</p>
+      <div class="death-stats" id="death-stats"></div>
+      <div class="respawn-timer">
+        <svg class="respawn-ring" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="none" stroke="#333" stroke-width="4"/>
+          <circle cx="30" cy="30" r="26" fill="none" stroke="#e94560" stroke-width="4"
+            stroke-dasharray="163" stroke-dashoffset="0" id="respawn-circle"/>
+        </svg>
+        <span id="respawn-count">5</span>
+      </div>
+      <p class="respawn-label">秒後重生</p>
+      <button class="btn-secondary" id="btn-menu-from-death">返回主選單</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaderboard Modal -->
+<div class="modal-overlay" id="modal-leaderboard" style="display:none;">
+  <div class="modal-box">
+    <h3>🏆 本局排行榜</h3>
+    <table class="lb-table" id="lb-table">
+      <thead><tr><th>#</th><th>名字</th><th>恐龍</th><th>擊殺</th><th>分數</th></tr></thead>
+      <tbody id="lb-body"></tbody>
+    </table>
+    <button class="btn-secondary" id="btn-close-lb">關閉</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
